@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { mockDataSources } from '../mockData';
 import { DataSourceItem } from '../types';
-import { Settings, Shield, Bell, Database, Info, Check, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
+import { getAnthropicApiKey, setAnthropicApiKey } from '../services/aiService';
+import { Shield, Bell, Database, Info, Check, ToggleLeft, ToggleRight, ExternalLink, Sparkles } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const [sources, setSources] = useState<DataSourceItem[]>(mockDataSources);
@@ -15,6 +16,16 @@ export const SettingsView: React.FC = () => {
   const [notifCriticalOnly, setNotifCriticalOnly] = useState(false);
   const [emailDigest, setEmailDigest] = useState('Daily');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  
+  const [apiKeyInput, setApiKeyInput] = useState(() => getAnthropicApiKey());
+  const [apiKeySaved, setApiKeySaved] = useState(false);
+
+  const handleSaveApiKey = () => {
+
+    setAnthropicApiKey(apiKeyInput);
+    setApiKeySaved(true);
+    setTimeout(() => setApiKeySaved(false), 3000);
+  };
 
   const toggleSourceStatus = (id: string) => {
     setSources(prev => prev.map(s => {
@@ -30,6 +41,7 @@ export const SettingsView: React.FC = () => {
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -147,7 +159,41 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Notification Preferences & About Info */}
+      {/* 3. AI Engine & API Configuration */}
+      <div className="card">
+        <div className="card-title">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={18} color="#2E5FDB" />
+            <span>AI Engine & Anthropic Claude API Configuration</span>
+          </div>
+        </div>
+
+        <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '14px' }}>
+          Configure your Anthropic API credentials to power live strategic functional unit breakdowns and copilot conversations:
+        </p>
+
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '280px' }}>
+            <input 
+              type="password"
+              className="search-input"
+              style={{ backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1', color: '#0F172A', width: '100%', padding: '8px 12px', borderRadius: '6px' }}
+              placeholder="Enter Anthropic API Key (sk-ant-api03-...)"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+            />
+          </div>
+          <button className="btn-primary" onClick={handleSaveApiKey}>
+            {apiKeySaved ? <Check size={15} /> : null}
+            {apiKeySaved ? 'API Key Stored' : 'Save API Key'}
+          </button>
+        </div>
+        <span style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px', display: 'block' }}>
+          Keys are stored locally in browser storage and directly used for browser requests. If no key is set, the system uses built-in high-precision intelligence synthesis.
+        </span>
+      </div>
+
+      {/* 4. Notification Preferences & About Info */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div className="card">
           <div className="card-title">
@@ -198,13 +244,14 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div style={{ fontSize: '13px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div><strong>Application:</strong> Haemophilia Intelligence Radar MVP</div>
-            <div><strong>Version:</strong> v2.4.0 (AI Engine Build 2026.08)</div>
+            <div><strong>Application:</strong> Nova Orbit Biopharma Strategic Intelligence Platform</div>
+            <div><strong>Version:</strong> v2.5.0 (AI Engine Live Build)</div>
             <div><strong>Tagline:</strong> <em>"From inbox noise to strategic signal."</em></div>
             <div><strong>Target Users:</strong> Medical Affairs, Regulatory, Safety, R&D, Market Access, Leadership</div>
           </div>
         </div>
       </div>
+
 
     </div>
   );

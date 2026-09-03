@@ -1,5 +1,6 @@
 import React from 'react';
-import { Signal } from '../types';
+import { Signal, RelevantFunction } from '../types';
+import { LiveRecordIdBadge } from './LiveRecordIdBadge';
 import { 
   X, 
   ExternalLink, 
@@ -13,19 +14,22 @@ import {
   Tag, 
   Building, 
   Users, 
-  Activity
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 
 interface SignalDetailModalProps {
   signal: Signal | null;
   onClose: () => void;
   onToggleBookmark?: (id: string) => void;
+  onSelectFunctionalUnit?: (signal: Signal, unit: RelevantFunction) => void;
 }
 
 export const SignalDetailModal: React.FC<SignalDetailModalProps> = ({
   signal,
   onClose,
-  onToggleBookmark
+  onToggleBookmark,
+  onSelectFunctionalUnit
 }) => {
   if (!signal) return null;
 
@@ -98,19 +102,13 @@ export const SignalDetailModal: React.FC<SignalDetailModalProps> = ({
 
           <h2 className="detail-headline">{headline}</h2>
 
-          <div className="detail-raw-signal">
+          <div className="detail-raw-signal" style={{ flexWrap: 'wrap', gap: '8px' }}>
             <span>Raw Source: <strong style={{ color: '#F8FAFC' }}>{source}</strong></span>
             <span>•</span>
             <span>Date: {date}</span>
             <span>•</span>
-            <a 
-              href={sourceUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{ color: '#38BDF8', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 600 }}
-            >
-              Verify Source URL <ExternalLink size={12} />
-            </a>
+            {/* Live Record ID Component Replacing Static "Verify Source" */}
+            <LiveRecordIdBadge signal={signal} />
           </div>
         </div>
 
@@ -166,20 +164,36 @@ export const SignalDetailModal: React.FC<SignalDetailModalProps> = ({
             </p>
           </div>
 
-          {/* Relevant Functions Tag Chips */}
+          {/* Relevant Functions Tag Chips -> Click navigates to Dedicated Full-Page Breakdown */}
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Users size={14} color="#7C4DFF" />
-              Relevant Functional Units
+            <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Users size={14} color="#7C4DFF" />
+                <span>Relevant Functional Units (Click for dedicated AI breakdown)</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#2E5FDB', fontWeight: 600 }}>Full-page route →</span>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {relevantFunctions.map((fn, idx) => (
-                <span key={idx} className="function-chip" style={{ fontSize: '12px', padding: '4px 12px' }}>
-                  {fn}
-                </span>
+                <button 
+                  key={idx} 
+                  className="function-chip interactive" 
+                  style={{ fontSize: '12px', padding: '5px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onClick={() => {
+                    onClose();
+                    if (onSelectFunctionalUnit) {
+                      onSelectFunctionalUnit(signal, fn);
+                    }
+                  }}
+                  title={`Open dedicated full-page strategic breakdown for ${fn}`}
+                >
+                  <span>{fn}</span>
+                  <ArrowRight size={12} color="#2E5FDB" />
+                </button>
               ))}
             </div>
           </div>
+
 
           {/* Associated Keyword Tags */}
           {tags && tags.length > 0 && (

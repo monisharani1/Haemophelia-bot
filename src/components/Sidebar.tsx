@@ -19,12 +19,16 @@ interface SidebarProps {
   activePage: NavPage;
   setActivePage: (page: NavPage) => void;
   newCriticalCount: number;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activePage, 
   setActivePage,
-  newCriticalCount 
+  newCriticalCount,
+  isCollapsed = false,
+  onToggleCollapse
 }) => {
   const navItems: { id: NavPage; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'home', label: 'Home', icon: <Home size={18} /> },
@@ -41,55 +45,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo-icon">
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div 
+        className="sidebar-header"
+        onClick={onToggleCollapse}
+        title={isCollapsed ? "Click to expand sidebar" : "Click to collapse sidebar"}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="sidebar-logo-icon interactive-logo">
           <Activity size={22} />
         </div>
-        <div className="sidebar-brand">
-          <span className="sidebar-title">Haemophilia Radar</span>
-          <span className="sidebar-tagline">Intelligence & Strategy</span>
-        </div>
+        {!isCollapsed && (
+          <div className="sidebar-brand">
+            <span className="sidebar-title">Nova Orbit</span>
+            <span className="sidebar-tagline">Strategic Intelligence</span>
+          </div>
+        )}
       </div>
 
       <nav className="sidebar-nav">
-        <div className="nav-section-title">Core Navigation</div>
+        {!isCollapsed && <div className="nav-section-title">Core Navigation</div>}
         {navItems.slice(0, 3).map((item) => (
           <button
             key={item.id}
             className={`nav-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => setActivePage(item.id)}
+            title={isCollapsed ? item.label : undefined}
           >
             <span className="nav-item-icon">{item.icon}</span>
-            <span>{item.label}</span>
-            {item.badge ? <span className="nav-item-badge">{item.badge}</span> : null}
+            {!isCollapsed && <span>{item.label}</span>}
+            {!isCollapsed && item.badge ? <span className="nav-item-badge">{item.badge}</span> : null}
+            {isCollapsed && item.badge ? <span className="collapsed-badge-dot" /> : null}
           </button>
         ))}
 
-        <div className="nav-section-title">Therapeutic Domains</div>
+        {!isCollapsed && <div className="nav-section-title">Therapeutic Domains</div>}
         {navItems.slice(3, 9).map((item) => (
           <button
             key={item.id}
             className={`nav-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => setActivePage(item.id)}
+            title={isCollapsed ? item.label : undefined}
           >
             <span className="nav-item-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            {!isCollapsed && <span>{item.label}</span>}
           </button>
         ))}
 
-        <div className="nav-section-title">Executive Tools</div>
+        {!isCollapsed && <div className="nav-section-title">Executive Tools</div>}
         {navItems.slice(9).map((item) => (
           <button
             key={item.id}
             className={`nav-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => setActivePage(item.id)}
+            title={isCollapsed ? item.label : undefined}
           >
             <span className="nav-item-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            {!isCollapsed && <span>{item.label}</span>}
           </button>
         ))}
       </nav>
     </aside>
   );
 };
+

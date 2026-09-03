@@ -30,7 +30,27 @@ export interface Signal {
   isBookmarked?: boolean;
   assignedTo?: string;
   tags?: string[];
+  
+  // Live Record Identification & Verification Anchors
+  sourceIdType?: 'NCT' | 'PMID' | 'FAERS' | 'EMA' | 'VigiBase' | 'DOI' | 'Other';
+  sourceId?: string;
+  sourceType?: 'clinicaltrials' | 'pubmed' | 'faers' | 'doi' | 'ema' | 'fda' | 'generic';
+  nctId?: string;
+  pmid?: string;
+  doi?: string;
+  faersCaseId?: string;
+  faersQuery?: string;
+  recordAnchorText?: string;
 }
+
+export interface UserSession {
+  name: string;
+  email: string;
+  role: string;
+  avatarInitials: string;
+  organization: string;
+}
+
 
 export type NavPage = 
   | 'home' 
@@ -43,7 +63,8 @@ export type NavPage =
   | 'access' 
   | 'companies' 
   | 'reports' 
-  | 'settings';
+  | 'settings'
+  | 'functional-breakdown';
 
 export interface DataSourceItem {
   id: string;
@@ -65,3 +86,26 @@ export interface SystemNotification {
   read: boolean;
   signalId?: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'bot';
+  text: string;
+  timestamp: string;
+  suggestedActions?: string[];
+  isError?: boolean;
+}
+
+export interface FunctionalUnitAnalysis {
+  relevance: string;
+  concreteActions: string[];
+  strategicTranslation: {
+    pipelineDecisions?: string;
+    researchDirections?: string;
+    regulatoryImplications?: string;
+    marketPositioning?: string;
+    investmentVectors?: string;
+  };
+  keyTakeaways: string[];
+}
+

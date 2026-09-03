@@ -1,13 +1,27 @@
 import { Signal, DataSourceItem, SystemNotification } from './types';
 
+// Helper to generate ISO dates relative to now for dynamic time-range testing
+const getRelativeDate = (daysAgo: number, hoursAgo = 0): string => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  d.setHours(d.getHours() - hoursAgo);
+  return d.toISOString();
+};
+
 export const mockSignals: Signal[] = [
   {
     id: 'sig-001',
     headline: 'Investigational long-acting bispecific antibody Phase 3 data presented at ISTH 2026 demonstrates zero treated bleeds in 88% of Severe Haemophilia A patients',
     category: 'Clinical',
     source: 'ISTH 2026 Congress / NEJM',
-    sourceUrl: 'https://isth2026.org/abstracts/abs-88492-bispecific',
-    date: '2026-08-28',
+    sourceUrl: 'https://doi.org/10.1056/NEJMoa2601234',
+    sourceType: 'clinicaltrials',
+    sourceIdType: 'NCT',
+    sourceId: 'NCT05047809',
+    doi: '10.1056/NEJMoa2601234',
+    pmid: '38891044',
+    nctId: 'NCT05047809',
+    date: getRelativeDate(0, 4), // 4 hours ago (Last 24 Hours)
     summary: 'Landmark 24-month Phase 3 HAVEN-7 follow-up dataset confirms monthly subcutaneous dosing of novel bispecific antibody maintains zero annualized bleeding rate (ABR) in 88.4% of patients with and without FVIII inhibitors, with no thromboembolic events reported.',
     whyItMatters: 'This landmark dataset confirms subcutaneously administered once-monthly bispecific antibody maintains zero ABR in 88% of patients. Poses a direct strategic threat to current once-weekly prophylaxis standards and accelerates competitive landscape shifts across Haemophilia A.',
     priority: 'Critical',
@@ -31,8 +45,13 @@ export const mockSignals: Signal[] = [
     headline: 'FDA grants Priority Review for AAV5 Gene Therapy label expansion in Severe Haemophilia B with pre-existing AAV neutralizing antibodies',
     category: 'Regulatory',
     source: 'FDA Press Announcement / CBER',
-    sourceUrl: 'https://fda.gov/news-events/haemophilia-b-aav5-priority-review',
-    date: '2026-08-26',
+    sourceUrl: 'https://www.fda.gov/vaccines-blood-biologics/cellular-gene-therapy-products',
+    sourceType: 'fda',
+    sourceIdType: 'NCT',
+    sourceId: 'NCT03569852',
+    recordAnchorText: 'FDA sBLA #125740/S-018',
+    nctId: 'NCT03569852',
+    date: getRelativeDate(0, 11), // 11 hours ago (Last 24 Hours)
     summary: 'The U.S. FDA has accepted a Supplemental Biologics License Application (sBLA) with Priority Review for AAV5-FIX gene therapy using specialized plasmapheresis pre-conditioning, unlocking treatment eligibility for previously excluded antibody-positive patients.',
     whyItMatters: 'Expands the addressable Haemophilia B gene therapy patient population by up to 35%. Regulatory precedent for overcoming AAV pre-existing immunity will trigger immediate pipeline re-evaluations across all liver-directed gene therapies.',
     priority: 'Critical',
@@ -56,8 +75,13 @@ export const mockSignals: Signal[] = [
     headline: 'WHO VigiBase & EMA Pharmacovigilance alert: Post-market signal detection of transient thrombotic microangiopathy in combination regimens',
     category: 'Safety',
     source: 'EMA PRAC & WHO VigiBase Safety Bulletin',
-    sourceUrl: 'https://ema.europa.eu/en/medicines/dhpc/haemophilia-tma-signal',
-    date: '2026-08-25',
+    sourceUrl: 'https://www.ema.europa.eu/en/medicines/human/referrals/haemophilia-tma-signal',
+    sourceType: 'ema',
+    sourceIdType: 'EMA',
+    sourceId: 'EMA/PRAC/482910/2026',
+    recordAnchorText: 'EMA/PRAC/482910/2026',
+    faersQuery: 'patient.drug.medicinalproduct:Factor+VIII+AND+patient.reaction.reactionmeddrapt:thrombotic+microangiopathy',
+    date: getRelativeDate(2), // 2 days ago (Last 7 Days)
     summary: 'European Medicines Agency PRAC initiated a safety signal evaluation following 14 global spontaneous case reports of transient TMA when non-factor mimetics were co-administered with high-dose activated prothrombin complex concentrate (aPCC) during breakthrough bleed management.',
     whyItMatters: 'Mandates urgent updating of clinical guidance protocols for emergency breakthrough bleed management. Medical Affairs and Pharmacovigilance teams must immediately issue safety advisories to treatment centers to mitigate clinical risk.',
     priority: 'High',
@@ -81,8 +105,13 @@ export const mockSignals: Signal[] = [
     headline: 'EU National Health Authority expands 45% reimbursement coverage for subcutaneous non-factor prophylaxis in paediatric Haemophilia A',
     category: 'Market',
     source: 'EUNetHTA & National Health Ministry Bulletin',
-    sourceUrl: 'https://eunethta.eu/assessments/haemophilia-paediatric-access',
-    date: '2026-08-24',
+    sourceUrl: 'https://doi.org/10.1016/S2352-3026(26)00142-9',
+    sourceType: 'doi',
+    sourceIdType: 'DOI',
+    sourceId: 'DOI: 10.1016/S2352-3026(26)00142-9',
+    doi: '10.1016/S2352-3026(26)00142-9',
+    recordAnchorText: 'EU-HTA-2026-HA-044',
+    date: getRelativeDate(3), // 3 days ago (Last 7 Days)
     summary: 'Joint European HTA body published positive comparative cost-effectiveness determination recommending universal first-line reimbursement for subcutaneous non-factor agents in pediatric non-inhibitor patients aged 0–12 years across 12 member states.',
     whyItMatters: 'Accelerates paediatric market conversion from intravenous FVIII replacement to subcutaneous non-factor prophylaxis. Provides strong health economics leverage for upcoming market access negotiations in tier-2 markets.',
     priority: 'High',
@@ -107,7 +136,13 @@ export const mockSignals: Signal[] = [
     category: 'Clinical',
     source: 'Nature Medicine / ClinicalTrials.gov NCT06129841',
     sourceUrl: 'https://clinicaltrials.gov/study/NCT06129841',
-    date: '2026-08-22',
+    sourceType: 'clinicaltrials',
+    sourceIdType: 'NCT',
+    sourceId: 'NCT06129841',
+    nctId: 'NCT06129841',
+    pmid: '38472910',
+    doi: '10.1038/s41591-026-02845-x',
+    date: getRelativeDate(4), // 4 days ago (Last 7 Days)
     summary: 'Interim Phase 1 dose-escalation data in 12 adults with severe Haemophilia A/B demonstrated dose-dependent 60-75% reduction in plasma antithrombin levels following single IV LNP infusion, resulting in normalized thrombin generation without severe adverse events.',
     whyItMatters: 'Proof-of-concept for in vivo gene editing targeting rebalancing pathways applicable to both Haemophilia A and B regardless of inhibitor status. Represents potential next-generation disruptive curative modality.',
     priority: 'High',
@@ -121,7 +156,7 @@ export const mockSignals: Signal[] = [
       novelty: 10
     },
     relevantFunctions: ['R&D', 'Medical Affairs', 'Leadership'],
-    haemophiliaType: 'Other',
+    haemophiliaType: 'A',
     status: 'New',
     isBookmarked: false,
     tags: ['CRISPR', 'Gene Editing', 'SERPINC1', 'Phase 1', 'Nature Medicine']
@@ -131,8 +166,13 @@ export const mockSignals: Signal[] = [
     headline: 'CHMP issues Positive Opinion for once-weekly recombinant Factor VIII variant with extended half-life in non-inhibitor patients',
     category: 'Regulatory',
     source: 'European Medicines Agency CHMP Highlights',
-    sourceUrl: 'https://ema.europa.eu/en/news/chmp-meeting-highlights-august-2026',
-    date: '2026-08-20',
+    sourceUrl: 'https://www.ema.europa.eu/en/medicines/human/summaries-opinion',
+    sourceType: 'ema',
+    sourceIdType: 'EMA',
+    sourceId: 'EMA/CHMP/771924/2026',
+    recordAnchorText: 'EMA/CHMP/771924/2026',
+    pmid: '38120934',
+    date: getRelativeDate(6), // 6 days ago (Last 7 Days)
     summary: 'The CHMP recommended approval of a novel PEGylated recombinant FVIII with an ultra-extended half-life (44 hours), enabling once-weekly intravenous prophylaxis in adults and adolescents with Haemophilia A.',
     whyItMatters: 'Provides a competitive extended half-life FVIII option for patients preferring factor-based prophylaxis over non-factor mimetics. Commercial teams should refine market positioning strategies.',
     priority: 'Medium',
@@ -156,8 +196,13 @@ export const mockSignals: Signal[] = [
     headline: 'Major US Pharmacy Benefit Manager updates preferred formulary tier for recombinant FVIII with 30% rebate agreement',
     category: 'Market',
     source: 'FiercePharma & Managed Care Executive Review',
-    sourceUrl: 'https://fiercepharma.com/payer-coverage/pbm-formulary-haemophilia-2026',
-    date: '2026-08-18',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/37912480/',
+    sourceType: 'pubmed',
+    sourceIdType: 'PMID',
+    sourceId: 'PMID: 37912480',
+    pmid: '37912480',
+    recordAnchorText: 'PubMed PMID: 37912480',
+    date: getRelativeDate(14), // 14 days ago (All)
     summary: 'One of the top three US PBMs announced preferred status for two recombinant FVIII concentrates for the 2027 plan year following confidential manufacturer rebate negotiations, impacting coverage for over 45M commercial lives.',
     whyItMatters: 'Payer pricing pressure remains intense for factor concentrates. Commercial and Market Access teams must evaluate formulary placement risks for existing portfolio brands.',
     priority: 'Medium',
@@ -181,8 +226,15 @@ export const mockSignals: Signal[] = [
     headline: 'FDA FAERS quarterly registry analysis highlights low-titre inhibitor development rate of 1.2% in previously untreated Haemophilia A cohort',
     category: 'Safety',
     source: 'FDA FAERS Registry / Journal of Thrombosis and Haemostasis',
-    sourceUrl: 'https://jthjournal.org/article/S1538-7836(26)00412/fulltext',
-    date: '2026-08-15',
+    sourceUrl: 'https://doi.org/10.1016/j.jtha.2026.04.012',
+    sourceType: 'faers',
+    sourceIdType: 'FAERS',
+    sourceId: 'Case ID: 2026-F-088492',
+    faersCaseId: '2026-F-088492',
+    faersQuery: 'patient.drug.medicinalproduct:Factor+VIII+AND+patient.reaction.reactionmeddrapt:Inhibitor+development',
+    pmid: '38194021',
+    doi: '10.1016/j.jtha.2026.04.012',
+    date: getRelativeDate(21), // 21 days ago (All)
     summary: 'A 5-year longitudinal registry analysis of 450 previously untreated patients (PUPs) receiving third-generation rFVIII demonstrated a low-titre inhibitor rate of 1.2%, significantly lower than historical 25-30% benchmarks.',
     whyItMatters: 'Reassuring long-term real-world safety evidence supporting early factor prophylaxis initiation in neonates and infants. Useful for Medical Affairs scientific communication decks.',
     priority: 'Medium',
@@ -202,6 +254,8 @@ export const mockSignals: Signal[] = [
     tags: ['FDA FAERS', 'Inhibitor Rate', 'PUPs', 'Real World Evidence', 'JTH']
   }
 ];
+
+
 
 export const mockDataSources: DataSourceItem[] = [
   {

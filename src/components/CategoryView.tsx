@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Signal, Category, Priority } from '../types';
+import { Signal, Category, Priority, RelevantFunction } from '../types';
 import { RecentSignalsTable } from './RecentSignalsTable';
 import { Search, Filter, RefreshCw, Download, SlidersHorizontal } from 'lucide-react';
 
@@ -8,14 +8,17 @@ interface CategoryViewProps {
   categoryFilter?: Category;
   signals: Signal[];
   onSelectSignal: (signal: Signal) => void;
+  onSelectFunctionalUnit?: (signal: Signal, unit: RelevantFunction) => void;
 }
 
 export const CategoryView: React.FC<CategoryViewProps> = ({
   title,
   categoryFilter,
   signals,
-  onSelectSignal
+  onSelectSignal,
+  onSelectFunctionalUnit
 }) => {
+
   const [search, setSearch] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedType, setSelectedType] = useState<string>('All');
@@ -129,6 +132,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
       <RecentSignalsTable 
         signals={filtered}
         onSelectSignal={onSelectSignal}
+        onSelectFunctionalUnit={onSelectFunctionalUnit}
         title={`${title} (${filtered.length} Signals)`}
       />
     </div>

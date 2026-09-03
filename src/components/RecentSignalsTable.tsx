@@ -1,10 +1,12 @@
 import React from 'react';
-import { Signal } from '../types';
+import { Signal, RelevantFunction } from '../types';
 import { ExternalLink, Bookmark, CheckCircle, ChevronRight, Eye } from 'lucide-react';
+import { LiveRecordIdBadge } from './LiveRecordIdBadge';
 
 interface RecentSignalsTableProps {
   signals: Signal[];
   onSelectSignal: (signal: Signal) => void;
+  onSelectFunctionalUnit?: (signal: Signal, unit: RelevantFunction) => void;
   title?: string;
   limit?: number;
 }
@@ -12,6 +14,7 @@ interface RecentSignalsTableProps {
 export const RecentSignalsTable: React.FC<RecentSignalsTableProps> = ({
   signals,
   onSelectSignal,
+  onSelectFunctionalUnit,
   title = "Recent Signals Feed",
   limit
 }) => {
@@ -61,9 +64,9 @@ export const RecentSignalsTable: React.FC<RecentSignalsTableProps> = ({
               <tr key={sig.id} onClick={() => onSelectSignal(sig)}>
                 <td>
                   <div className="table-headline">{sig.headline}</div>
-                  <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600 }}>{sig.source}</span>
-                    <span>• Type {sig.haemophiliaType}</span>
+                    <LiveRecordIdBadge signal={sig} compact />
                   </div>
                 </td>
                 <td>
@@ -77,7 +80,18 @@ export const RecentSignalsTable: React.FC<RecentSignalsTableProps> = ({
                   </div>
                   <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
                     {sig.relevantFunctions.slice(0, 3).map((fn, idx) => (
-                      <span key={idx} className="function-chip" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                      <span 
+                        key={idx} 
+                        className="function-chip" 
+                        style={{ fontSize: '10px', padding: '1px 6px', cursor: onSelectFunctionalUnit ? 'pointer' : 'default' }}
+                        onClick={(e) => {
+                          if (onSelectFunctionalUnit) {
+                            e.stopPropagation();
+                            onSelectFunctionalUnit(sig, fn);
+                          }
+                        }}
+                        title={`View ${fn} AI breakdown`}
+                      >
                         {fn}
                       </span>
                     ))}
@@ -88,6 +102,7 @@ export const RecentSignalsTable: React.FC<RecentSignalsTableProps> = ({
                     )}
                   </div>
                 </td>
+
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span className={`badge ${getPriorityBadgeClass(sig.priority)}`}>

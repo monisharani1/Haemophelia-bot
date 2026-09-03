@@ -36,7 +36,7 @@ export const AIWorkflowDiagram: React.FC = () => {
       name: 'Classify',
       desc: 'Categorize into Clinical, Regulatory, Safety, or Market',
       icon: <Tags size={16} color="#7C4DFF" />,
-      detail: 'Domain-trained Haemophilia NLP classifier maps signals to specific therapeutic categories and Haemophilia types (A, B, VWD).'
+      detail: 'Domain-trained Nova Orbit NLP classifier maps signals to specific therapeutic categories and modalities (A, B, VWD, gene editing).'
     },
     {
       step: 4,

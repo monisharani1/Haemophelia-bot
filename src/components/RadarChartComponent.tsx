@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Info, RefreshCw } from 'lucide-react';
+import { Signal } from '../types';
 
 interface AxisData {
   axis: string;
@@ -8,18 +9,72 @@ interface AxisData {
   low: number;     // 0 - 100
 }
 
-const radarAxes: AxisData[] = [
-  { axis: 'Clinical Trials', high: 92, medium: 75, low: 40 },
-  { axis: 'Regulatory', high: 85, medium: 68, low: 45 },
-  { axis: 'Market Access', high: 78, medium: 82, low: 50 },
-  { axis: 'Safety', high: 88, medium: 60, low: 35 },
-  { axis: 'Publications', high: 70, medium: 85, low: 60 },
-  { axis: 'Partnerships', high: 65, medium: 72, low: 40 }
-];
+interface RadarChartProps {
+  signals?: Signal[];
+}
 
-export const RadarChartComponent: React.FC = () => {
+export const RadarChartComponent: React.FC<RadarChartProps> = ({ signals = [] }) => {
   const [activeSeries, setActiveSeries] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [hoveredAxis, setHoveredAxis] = useState<AxisData | null>(null);
+
+  // Compute dynamic axes values based on the active filtered signal set
+  const dynamicAxes: AxisData[] = useMemo(() => {
+    if (!signals || signals.length === 0) {
+      return [
+        { axis: 'Clinical Trials', high: 20, medium: 15, low: 10 },
+        { axis: 'Regulatory', high: 20, medium: 15, low: 10 },
+        { axis: 'Market Access', high: 20, medium: 15, low: 10 },
+        { axis: 'Safety', high: 20, medium: 15, low: 10 },
+        { axis: 'Publications', high: 20, medium: 15, low: 10 },
+        { axis: 'Partnerships', high: 20, medium: 15, low: 10 }
+      ];
+    }
+
+    const calcIntensity = (filterFn: (s: Signal) => boolean, baseHigh: number, baseMed: number, baseLow: number) => {
+      const matching = signals.filter(filterFn);
+      if (matching.length === 0) {
+        return { high: 25, medium: 20, low: 15 };
+      }
+      const avgScore = matching.reduce((sum, s) => sum + s.impactScore, 0) / matching.length;
+      const countFactor = Math.min(1.2, 0.7 + matching.length * 0.15);
+      
+      return {
+        high: Math.min(98, Math.round(avgScore * countFactor)),
+        medium: Math.min(85, Math.round(avgScore * 0.8 * countFactor)),
+        low: Math.min(65, Math.round(avgScore * 0.5))
+      };
+    };
+
+    return [
+      {
+        axis: 'Clinical Trials',
+        ...calcIntensity(s => s.category === 'Clinical' || s.sourceType === 'clinicaltrials', 92, 75, 40)
+      },
+      {
+        axis: 'Regulatory',
+        ...calcIntensity(s => s.category === 'Regulatory' || s.sourceType === 'fda' || s.sourceType === 'ema', 85, 68, 45)
+      },
+      {
+        axis: 'Market Access',
+        ...calcIntensity(s => s.category === 'Market' || (s.tags && s.tags.includes('HTA')), 78, 82, 50)
+      },
+      {
+        axis: 'Safety',
+        ...calcIntensity(s => s.category === 'Safety' || s.sourceType === 'faers', 88, 60, 35)
+      },
+      {
+        axis: 'Publications',
+        ...calcIntensity(s => s.sourceType === 'pubmed' || s.sourceType === 'doi', 70, 85, 60)
+      },
+      {
+        axis: 'Partnerships',
+        ...calcIntensity(s => s.relevantFunctions.includes('Commercial') || s.category === 'Market', 65, 72, 40)
+      }
+    ];
+  }, [signals]);
+
+  const radarAxes = dynamicAxes;
+
 
   const size = 340;
   const center = size / 2;

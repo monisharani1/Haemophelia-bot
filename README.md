@@ -1,16 +1,19 @@
-# React + Vite
+# Nova Orbit — Biopharma Strategic Intelligence Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Nova Orbit** converts scattered biopharma clinical trials, FDA/EMA regulatory records, pharmacovigilance safety data, and market access moves into actionable strategic signals.
 
-Currently, two official plugins are available:
+## Key Features
+- **Curated Signal Surveillance**: High-precision monitoring of clinical trials, regulatory approvals, and safety registries.
+- **Dynamic Time-Range Filtering**: Responsive filtering across 24 Hours, 7 Days, and All data views driving KPI counters, prioritized feeds, tables, and radar maps.
+- **Interactive Market Evolution Radar**: 6-domain intensity indexing across Clinical, Regulatory, Market Access, Safety, Publications, and Industry moves.
+- **Source Citation & Integrity**: Transparent identifiers including ClinicalTrials.gov (NCT), PubMed (PMID), FDA FAERS (Case IDs), EMA reference numbers, and DOIs.
+- **Dedicated Functional Unit AI Translation**: Executive breakdowns tailored specifically for R&D, Medical Affairs, Commercial, Market Access, Regulatory, Safety, and Leadership.
+- **Nova Orbit AI Copilot**: Grounded conversational assistant scoped strictly to active intelligence data.
+- **Landing Page & Authentication Gate**: SaaS-grade entry with session management and user controls.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Development
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm install
+npm run dev
+```

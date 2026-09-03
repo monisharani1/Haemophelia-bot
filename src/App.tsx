@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavPage, Signal, SystemNotification } from './types';
+import React, { useState, useEffect } from 'react';
+import { NavPage, Signal, SystemNotification, RelevantFunction, UserSession } from './types';
 import { mockSignals, mockNotifications } from './mockData';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -12,16 +12,56 @@ import { AIWorkflowDiagram } from './components/AIWorkflowDiagram';
 import { CategoryView } from './components/CategoryView';
 import { ReportsView } from './components/ReportsView';
 import { SettingsView } from './components/SettingsView';
+import { FunctionalUnitBreakdownView } from './components/FunctionalUnitBreakdownView';
+import { ChatbotWidget } from './components/ChatbotWidget';
+import { LandingPage } from './components/LandingPage';
+import { Breadcrumbs } from './components/Breadcrumbs';
 
 export const App: React.FC = () => {
+  // Authentication session state
+  const [userSession, setUserSession] = useState<UserSession | null>(() => {
+    try {
+      const saved = localStorage.getItem('nova_orbit_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // UI & Navigation State
   const [activePage, setActivePage] = useState<NavPage>('home');
-  const [therapeuticArea, setTherapeuticArea] = useState('Haemophilia A & B');
-  const [timeRange, setTimeRange] = useState('Last 7 Days');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [timeRange, setTimeRange] = useState<string>('Last 7 Days');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [onlyBookmarks, setOnlyBookmarks] = useState<boolean>(false);
   
   const [signals, setSignals] = useState<Signal[]>(mockSignals);
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
   const [notifications, setNotifications] = useState<SystemNotification[]>(mockNotifications);
+
+  // Dedicated Functional Unit Full-Page Route State
+  const [breakdownSignal, setBreakdownSignal] = useState<Signal | null>(null);
+  const [breakdownUnit, setBreakdownUnit] = useState<RelevantFunction>('R&D');
+
+  // Handle Login & Session Persistence
+  const handleLogin = (session: UserSession) => {
+    setUserSession(session);
+    try {
+      localStorage.setItem('nova_orbit_session', JSON.stringify(session));
+    } catch (e) {
+      console.warn('Failed to save session to localStorage:', e);
+    }
+  };
+
+  const handleLogout = () => {
+    setUserSession(null);
+    try {
+      localStorage.removeItem('nova_orbit_session');
+    } catch (e) {
+      console.warn('Failed to remove session:', e);
+    }
+  };
 
   // Toggle bookmark for a signal
   const handleToggleBookmark = (id: string) => {
@@ -46,20 +86,47 @@ export const App: React.FC = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  // Filter signals by search query or therapeutic area
-  const getFilteredSignals = () => {
-    return signals.filter(s => {
-      // Therapeutic Area filter
-      if (therapeuticArea === 'Haemophilia A' && s.haemophiliaType !== 'A') return false;
-      if (therapeuticArea === 'Haemophilia B' && s.haemophiliaType !== 'B') return false;
+  // Navigate to Dedicated Full-Page Functional Unit Breakdown
+  const handleSelectFunctionalUnit = (signal: Signal, unit: RelevantFunction) => {
+    setBreakdownSignal(signal);
+    setBreakdownUnit(unit);
+    setSelectedSignal(null);
+    setActivePage('functional-breakdown');
+  };
 
-      // Search query
+  // Filter signals dynamically by Time Range and Search Query
+  const getFilteredSignals = () => {
+    const now = new Date().getTime();
+
+    return signals.filter(s => {
+      // 1. Time Range Filter (Last 24 Hours / Last 7 Days / All)
+      if (timeRange === 'Last 24 Hours') {
+        const signalTime = new Date(s.date).getTime();
+        const diffHours = (now - signalTime) / (1000 * 60 * 60);
+        if (diffHours > 24) return false;
+      } else if (timeRange === 'Last 7 Days') {
+        const signalTime = new Date(s.date).getTime();
+        const diffDays = (now - signalTime) / (1000 * 60 * 60 * 24);
+        if (diffDays > 7) return false;
+      }
+
+      // 2. Bookmarks filter
+      if (onlyBookmarks && !s.isBookmarked) {
+        return false;
+      }
+
+      // 3. Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const headlineMatch = s.headline.toLowerCase().includes(q);
         const summaryMatch = s.summary.toLowerCase().includes(q);
+        const whyMatch = s.whyItMatters.toLowerCase().includes(q);
         const sourceMatch = s.source.toLowerCase().includes(q);
-        if (!headlineMatch && !summaryMatch && !sourceMatch) return false;
+        const idMatch = s.sourceId ? s.sourceId.toLowerCase().includes(q) : false;
+        const tagMatch = s.tags ? s.tags.some(t => t.toLowerCase().includes(q)) : false;
+        if (!headlineMatch && !summaryMatch && !whyMatch && !sourceMatch && !idMatch && !tagMatch) {
+          return false;
+        }
       }
 
       return true;
@@ -67,56 +134,109 @@ export const App: React.FC = () => {
   };
 
   const currentFilteredSignals = getFilteredSignals();
-  const criticalCount = signals.filter(s => s.priority === 'Critical').length;
+  const criticalCount = currentFilteredSignals.filter(s => s.priority === 'Critical').length;
 
   // Title for Header based on active page
   const getPageTitle = () => {
     switch (activePage) {
-      case 'home': return 'Intelligence Dashboard';
-      case 'feed': return 'Signal Feed';
+      case 'home': return 'Nova Orbit Intelligence Dashboard';
+      case 'feed': return onlyBookmarks ? 'Saved Papers & Bookmarked Signals' : 'Signal Feed';
       case 'radar': return 'Market Evolution Radar';
-      case 'clinical': return 'Clinical Trials Intelligence';
-      case 'regulatory': return 'Regulatory Actions & Approvals';
+      case 'clinical': return 'Clinical Trials Intelligence (NCT)';
+      case 'regulatory': return 'Regulatory Actions & Approvals (FDA/EMA)';
       case 'safety': return 'Safety & Pharmacovigilance Alerts';
-      case 'publications': return 'Scientific Publications & Congresses';
-      case 'access': return 'Market Access & Pricing Data';
+      case 'publications': return 'Scientific Publications (PubMed & NEJM)';
+      case 'access': return 'Market Access & Reimbursement Data';
       case 'companies': return 'Competitive Industry Intelligence';
       case 'reports': return 'Executive Briefings & Reports';
       case 'settings': return 'System Settings & Data Sources';
-      default: return 'Haemophilia Intelligence Radar';
+      case 'functional-breakdown': return `Team Strategic Breakdown: ${breakdownUnit}`;
+      default: return 'Nova Orbit Intelligence Platform';
     }
   };
 
+  // If user is not authenticated, render public SaaS landing page with login modal
+  if (!userSession) {
+    return <LandingPage onLogin={handleLogin} />;
+  }
+
   return (
-    <div className="app-container">
-      {/* Left Sidebar (Dark Navy, always visible) */}
+    <div className={`app-container ${isDarkMode ? 'theme-dark' : 'theme-light'}`} data-theme={isDarkMode ? 'dark' : 'light'}>
+      {/* Left Sidebar (Collapsible with Nova Orbit Branding) */}
       <Sidebar 
         activePage={activePage} 
-        setActivePage={setActivePage}
+        setActivePage={(p) => {
+          setOnlyBookmarks(false);
+          setActivePage(p);
+        }}
         newCriticalCount={criticalCount}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
       {/* Main Content Area */}
-      <div className="main-wrapper">
-        {/* Top Header Bar */}
+      <div className={`main-wrapper ${sidebarCollapsed ? 'expanded-wrapper' : ''}`}>
+        {/* Top Header Bar & Search Row */}
         <Header 
           pageTitle={getPageTitle()}
-          therapeuticArea={therapeuticArea}
-          setTherapeuticArea={setTherapeuticArea}
           timeRange={timeRange}
           setTimeRange={setTimeRange}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
+          userSession={userSession}
+          onLogout={handleLogout}
+          onNavigateSettings={() => {
+            setOnlyBookmarks(false);
+            setActivePage('settings');
+          }}
+          onFilterBookmarks={() => {
+            setOnlyBookmarks(true);
+            setActivePage('feed');
+          }}
+          isDarkMode={isDarkMode}
+          onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         />
 
         {/* Dynamic Page Views */}
         <main className="content-area">
-          {/* 1. Home Dashboard Page */}
+          {/* Breadcrumb Navigation */}
+          <Breadcrumbs 
+            activePage={activePage}
+            setActivePage={(p) => {
+              setOnlyBookmarks(false);
+              setActivePage(p);
+            }}
+            selectedSignal={selectedSignal}
+            onClearSelectedSignal={() => setSelectedSignal(null)}
+            breakdownUnit={activePage === 'functional-breakdown' ? breakdownUnit : null}
+          />
+
+          {/* Active Bookmark Filter Banner */}
+          {onlyBookmarks && activePage === 'feed' && (
+            <div className="filter-active-banner">
+              <span>Showing only <strong>Saved Papers & Bookmarked Signals</strong></span>
+              <button className="clear-filter-btn" onClick={() => setOnlyBookmarks(false)}>
+                Show All Signals
+              </button>
+            </div>
+          )}
+
+          {/* 1. Dedicated Full-Page Functional Unit AI Breakdown */}
+          {activePage === 'functional-breakdown' && (
+            <FunctionalUnitBreakdownView
+              signal={breakdownSignal || signals[0]}
+              selectedUnit={breakdownUnit}
+              onNavigateBack={() => setActivePage('home')}
+              onSelectUnit={(u) => setBreakdownUnit(u)}
+            />
+          )}
+
+          {/* 2. Home Dashboard Page */}
           {activePage === 'home' && (
             <div>
-              {/* 4 KPI Cards */}
+              {/* 4 KPI Cards (Dynamically driven by time-range filter) */}
               <KPICards 
                 signals={currentFilteredSignals}
                 onFilterClick={(p, s) => {
@@ -124,9 +244,9 @@ export const App: React.FC = () => {
                 }}
               />
 
-              {/* Two Column Row: Radar Chart + Top Prioritized Signals */}
+              {/* Two Column Row: Market Radar Chart + Top Prioritized Signals */}
               <div className="dashboard-grid">
-                <RadarChartComponent />
+                <RadarChartComponent signals={currentFilteredSignals} />
                 <TopSignals 
                   signals={currentFilteredSignals}
                   onSelectSignal={(sig) => setSelectedSignal(sig)}
@@ -134,10 +254,11 @@ export const App: React.FC = () => {
                 />
               </div>
 
-              {/* Recent Signals Table */}
+              {/* Recent Signals Table (Dynamically driven by time-range filter) */}
               <RecentSignalsTable 
                 signals={currentFilteredSignals}
                 onSelectSignal={(sig) => setSelectedSignal(sig)}
+                onSelectFunctionalUnit={handleSelectFunctionalUnit}
                 limit={5}
               />
 
@@ -146,71 +267,78 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* 2. Signal Feed Page */}
+          {/* 3. Signal Feed Page */}
           {activePage === 'feed' && (
             <CategoryView 
-              title="Full Signal Feed"
+              title={onlyBookmarks ? "Saved Papers & Bookmarked Signals" : "Full Signal Feed"}
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
-          {/* 3. Category Filtered Views */}
+          {/* 4. Category Filtered Views */}
           {activePage === 'radar' && (
             <div>
               <div className="card" style={{ marginBottom: '20px' }}>
-                <RadarChartComponent />
+                <RadarChartComponent signals={currentFilteredSignals} />
               </div>
               <CategoryView 
                 title="Market Radar Signals"
                 signals={currentFilteredSignals}
                 onSelectSignal={(sig) => setSelectedSignal(sig)}
+                onSelectFunctionalUnit={handleSelectFunctionalUnit}
               />
             </div>
           )}
 
           {activePage === 'clinical' && (
             <CategoryView 
-              title="Clinical Trials Intelligence"
+              title="Clinical Trials Intelligence (NCT Registry)"
               categoryFilter="Clinical"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
           {activePage === 'regulatory' && (
             <CategoryView 
-              title="Regulatory Records & Filings"
+              title="Regulatory Records & Filings (FDA / EMA)"
               categoryFilter="Regulatory"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
           {activePage === 'safety' && (
             <CategoryView 
-              title="Safety & Pharmacovigilance Data"
+              title="Safety & Pharmacovigilance Data (FAERS / PRAC)"
               categoryFilter="Safety"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
           {activePage === 'publications' && (
             <CategoryView 
-              title="Publications & Congress Abstracts"
+              title="Publications & Congress Abstracts (PubMed & NEJM)"
               categoryFilter="Clinical"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
           {activePage === 'access' && (
             <CategoryView 
-              title="Market Access & Reimbursement"
+              title="Market Access & Reimbursement (HTA / PBM)"
               categoryFilter="Market"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
@@ -220,27 +348,32 @@ export const App: React.FC = () => {
               categoryFilter="Market"
               signals={currentFilteredSignals}
               onSelectSignal={(sig) => setSelectedSignal(sig)}
+              onSelectFunctionalUnit={handleSelectFunctionalUnit}
             />
           )}
 
-          {/* 4. Reports Page */}
+          {/* 5. Reports Page */}
           {activePage === 'reports' && (
             <ReportsView signals={currentFilteredSignals} />
           )}
 
-          {/* 5. Settings Page */}
+          {/* 6. Settings Page */}
           {activePage === 'settings' && (
             <SettingsView />
           )}
         </main>
       </div>
 
-      {/* Signal Detail Modal Overlay (Opens when signal is clicked from anywhere) */}
+      {/* Signal Detail Modal Overlay */}
       <SignalDetailModal 
         signal={selectedSignal}
         onClose={() => setSelectedSignal(null)}
         onToggleBookmark={handleToggleBookmark}
+        onSelectFunctionalUnit={handleSelectFunctionalUnit}
       />
+
+      {/* Floating Pill Chatbot Widget */}
+      <ChatbotWidget signals={currentFilteredSignals} />
     </div>
   );
 };
